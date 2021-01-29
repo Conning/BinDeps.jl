@@ -47,8 +47,7 @@ downloadcmd = nothing
 function download_cmd(url::AbstractString, filename::AbstractString)
     global downloadcmd
     if downloadcmd === nothing
-        for download_engine in (Sys.iswindows() ? ("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell",
-                :powershell, :curl, :wget, :fetch) : (:curl, :wget, :fetch))
+        for download_engine in (:curl, :wget, :fetch)
             if endswith(string(download_engine), "powershell")
                 checkcmd = `$download_engine -NoProfile -Command ""`
             else
