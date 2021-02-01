@@ -47,19 +47,24 @@ downloadcmd = nothing
 function download_cmd(url::AbstractString, filename::AbstractString)
     global downloadcmd
     if downloadcmd === nothing
-        for download_engine in (:curl, :wget, :fetch)
-            if endswith(string(download_engine), "powershell")
-                checkcmd = `$download_engine -NoProfile -Command ""`
-            else
-                checkcmd = `$download_engine --help`
-            end
-            try
-                if success(checkcmd)
-                    downloadcmd = download_engine
-                    break
+        if haskey(ENV, "BINARYPROVIDER_DOWNLOAD_ENGINE")
+            downloadcmd = Symbol(ENV["BINARYPROVIDER_DOWNLOAD_ENGINE"])
+        else
+            for download_engine in (Sys.iswindows() ? ("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell",
+                    :powershell, :curl, :wget, :fetch) : (:curl, :wget, :fetch))
+                if endswith(string(download_engine), "powershell")
+                    checkcmd = `$download_engine -NoProfile -Command ""`
+                else
+                    checkcmd = `$download_engine --help`
                 end
-            catch
-                continue # don't bail if one of these fails
+                try
+                    if success(checkcmd)
+                        downloadcmd = download_engine
+                        break
+                    end
+                catch
+                    continue # don't bail if one of these fails
+                end
             end
         end
     end
